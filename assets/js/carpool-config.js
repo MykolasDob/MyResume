@@ -8,10 +8,10 @@
 // ============================================================
 
 const FIREBASE_CONFIG = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
+  apiKey:            "AIzaSyAowteekuG1JFrzh3_ZrJ-U0hIQu34JmQA",
+  authDomain:        "autotrip-lt.firebaseapp.com",
+  projectId:         "autotrip-lt",
+  storageBucket:     "autotrip-lt.firebasestorage.app",
+  messagingSenderId: "416628054453",
+  appId:             "1:416628054453:web:71d6f25dfb51322991a1fc"
 };
