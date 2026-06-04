@@ -5,11 +5,12 @@
       "firebase.json",
       "firestore.rules",
       ".git/**",
-      ".gitignore"
+      ".gitignore",
+      "index.html"
     ],
     "rewrites": [
       {
-        "source": "/app",
+        "source": "**",
         "destination": "/carpool.html"
       }
     ]
