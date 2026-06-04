@@ -301,7 +301,12 @@ async function loadRideDetail(rideId) {
 
 // ---- DRIVER: show booking requests ----
 async function renderDriverBookings(rideId, container) {
-  const snap = await db.collection('bookings').where('ride_id', '==', rideId).get();
+  // Must filter by driver_id too — Firestore security rules reject a
+  // bookings query that isn't scoped to the current user.
+  const snap = await db.collection('bookings')
+    .where('ride_id', '==', rideId)
+    .where('driver_id', '==', currentUser.uid)
+    .get();
 
   if (snap.empty) {
     container.innerHTML = `
@@ -483,7 +488,8 @@ async function postRide() {
   const date       = document.getElementById('post-date').value;
   const time       = document.getElementById('post-time').value;
   const seats      = parseInt(document.getElementById('post-seats').value, 10);
-  const priceRaw   = document.getElementById('post-price').value;
+  const priceRaw   = document.getElementById('post-price').value.trim().replace(',', '.');
+  const priceNum   = parseFloat(priceRaw);
   const notes      = document.getElementById('post-notes').value.trim();
 
   if (!from || !to || !date || !time) {
@@ -512,7 +518,7 @@ async function postRide() {
       arrival_detail:   toDetail  || null,
       departure_time:   firebase.firestore.Timestamp.fromDate(depTime),
       available_seats:  seats,
-      price_per_seat:   priceRaw ? parseFloat(priceRaw) : null,
+      price_per_seat:   (priceRaw !== '' && !isNaN(priceNum)) ? priceNum : null,
       trip_notes:       notes || null,
       created_at:       firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -565,11 +571,9 @@ async function loadMyRides() {
   list.innerHTML = '<div class="cp-spinner"><div class="spinner-border text-primary"></div></div>';
 
   try {
-    // NOTE: This query requires a composite index on (driver_id ASC, departure_time DESC).
-    // Firebase will log an error with a direct link to create it on first run.
+    // Single equality filter — no composite index needed. Sort client-side.
     const snap = await db.collection('rides')
       .where('driver_id', '==', currentUser.uid)
-      .orderBy('departure_time', 'desc')
       .get();
 
     if (snap.empty) {
@@ -579,6 +583,7 @@ async function loadMyRides() {
     }
     empty.classList.add('d-none');
     const rides = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    rides.sort((a, b) => (b.departure_time?.seconds || 0) - (a.departure_time?.seconds || 0));
     list.innerHTML = rides.map(rideCardHTML).join('');
     bindRideCards(list);
   } catch (err) {
@@ -593,10 +598,9 @@ async function loadMyBookings() {
   list.innerHTML = '<div class="cp-spinner"><div class="spinner-border text-primary"></div></div>';
 
   try {
-    // NOTE: Requires composite index on (passenger_id ASC, created_at DESC).
+    // Single equality filter — no composite index needed. Sort client-side.
     const snap = await db.collection('bookings')
       .where('passenger_id', '==', currentUser.uid)
-      .orderBy('created_at', 'desc')
       .get();
 
     if (snap.empty) {
@@ -607,6 +611,7 @@ async function loadMyBookings() {
     empty.classList.add('d-none');
 
     const bookings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    bookings.sort((a, b) => (b.created_at?.seconds || 0) - (a.created_at?.seconds || 0));
     const rideIds  = [...new Set(bookings.map(b => b.ride_id))];
     const rideDocs = await Promise.all(rideIds.map(id => db.collection('rides').doc(id).get()));
     const ridesMap = {};
