@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Auto1Trip.lt</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============================================================
+     NAVBAR
+============================================================ -->
+<nav class="cp-navbar">
+  <span class="brand" id="nav-brand">
+    <i class="bi bi-car-front-fill"></i> Auto1Trip.lt
+  </span>
+  <div class="nav-right" id="nav-user"></div>
+</nav>
+
+<!-- Toast notifications -->
+<div class="toast-wrap" id="toasts"></div>
+
+<!-- FAB (post a ride) -->
+<button class="fab" id="fab" title="Post a ride" style="display:none">
+  <i class="bi bi-plus-lg"></i>
+</button>
+
+<!-- ============================================================
+     VIEWS
+============================================================ -->
+<main>
+
+  <!-- ── LOGIN ─────────────────────────────── -->
+  <div class="view active" id="view-login">
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="login-icon"><i class="bi bi-car-front-fill"></i></div>
+        <h1>Auto1Trip.lt</h1>
+        <p class="tagline">Share rides across Lithuania</p>
+        <button class="btn-google" id="btn-google-login">
+          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          Continue with Google
+        </button>
+        <p class="login-note">
+          No passwords. No fees.<br>
+          Pay your driver directly — cash or Revolut.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PHONE SETUP ───────────────────────── -->
+  <div class="view" id="view-setup">
+    <div class="setup-wrap">
+      <div class="setup-card">
+        <h2>One more thing…</h2>
+        <p class="text-muted" style="margin-bottom:24px">
+          Your phone number lets drivers and passengers reach you when it matters.
+        </p>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Lithuanian mobile number</label>
+          <div class="input-group">
+            <span class="input-group-text">+370</span>
+            <input type="tel" class="form-control" id="phone-input"
+                   placeholder="612 34567" maxlength="9" inputmode="numeric">
+          </div>
+          <div class="form-text">Enter the 8 digits after +370</div>
+        </div>
+        <button class="btn btn-primary w-100" id="btn-save-phone">Save &amp; Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BROWSE ────────────────────────────── -->
+  <div class="view" id="view-browse">
+
+    <!-- Hero search bar -->
+    <div class="browse-hero">
+      <div class="container">
+        <h2>Where are you headed?</h2>
+        <div class="search-bar">
+          <div class="search-field">
+            <i class="bi bi-geo-alt"></i>
+            <select id="search-from" class="select-bare"></select>
+          </div>
+          <div class="search-divider"></div>
+          <div class="search-field">
+            <i class="bi bi-flag"></i>
+            <select id="search-to" class="select-bare"></select>
+          </div>
+          <button class="btn-search" id="btn-search" aria-label="Search">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ride list -->
+    <div class="container py-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0 fw-bold" id="browse-title">All upcoming rides</h5>
+        <span id="ride-count" class="badge bg-light text-dark"></span>
+      </div>
+      <div id="ride-list" class="ride-list"></div>
+      <div id="no-rides" class="empty-state d-none">
+        <i class="bi bi-search"></i>
+        <p>No rides found</p>
+        <small class="text-muted">Try a different route or check back soon</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── POST RIDE ─────────────────────────── -->
+  <div class="view" id="view-post">
+    <div class="container py-4">
+
+      <div class="view-header">
+        <button class="btn-back" id="btn-back-post" aria-label="Back">
+          <i class="bi bi-arrow-left"></i>
+        </button>
+        <h4>Post a ride</h4>
+      </div>
+
+      <div class="form-card">
+        <div class="row g-3">
+
+          <div class="col-12 col-sm-6">
+            <label class="form-label fw-semibold">From <span class="text-danger">*</span></label>
+            <select class="form-select" id="post-from"></select>
+          </div>
+          <div class="col-12 col-sm-6">
+            <label class="form-label fw-semibold">To <span class="text-danger">*</span></label>
+            <select class="form-select" id="post-to"></select>
+          </div>
+
+          <div class="col-12 col-sm-6">
+            <label class="form-label text-muted small">Pickup spot <span class="fw-normal">(optional)</span></label>
+            <input type="text" class="form-control" id="post-from-detail"
+                   placeholder="e.g. Seimo parkštelė, Akropolis">
+          </div>
+          <div class="col-12 col-sm-6">
+            <label class="form-label text-muted small">Dropoff spot <span class="fw-normal">(optional)</span></label>
+            <input type="text" class="form-control" id="post-to-detail"
+                   placeholder="e.g. Mega, Akropolis">
+          </div>
+
+          <div class="col-6">
+            <label class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="post-date">
+          </div>
+          <div class="col-6">
+            <label class="form-label fw-semibold">Time <span class="text-danger">*</span></label>
+            <input type="time" class="form-control" id="post-time">
+          </div>
+
+          <div class="col-6">
+            <label class="form-label fw-semibold">Available seats</label>
+            <select class="form-select" id="post-seats">
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label fw-semibold">Price per seat</label>
+            <div class="input-group">
+              <input type="number" class="form-control" id="post-price"
+                     placeholder="7" min="0" max="200" step="0.5">
+              <span class="input-group-text">EUR</span>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label text-muted small">Notes for passengers <span class="fw-normal">(optional)</span></label>
+            <textarea class="form-control" id="post-notes" rows="2"
+                      placeholder="e.g. No huge luggage, silver Subaru, stopping in Kaunas"></textarea>
+          </div>
+
+          <div class="col-12 mt-2">
+            <button class="btn btn-primary w-100 btn-lg fw-bold" id="btn-post-submit">Post Ride</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── RIDE DETAIL ───────────────────────── -->
+  <div class="view" id="view-ride">
+    <div class="container py-4">
+      <div class="view-header">
+        <button class="btn-back" id="btn-back-ride" aria-label="Back">
+          <i class="bi bi-arrow-left"></i>
+        </button>
+        <h4>Ride details</h4>
+      </div>
+      <div id="ride-detail-content"></div>
+    </div>
+  </div>
+
+  <!-- ── DASHBOARD ─────────────────────────── -->
+  <div class="view" id="view-dashboard">
+    <div class="container py-4">
+
+      <h4 class="fw-bold mb-4">My account</h4>
+
+      <!-- Profile -->
+      <div id="profile-card" class="profile-card"></div>
+
+      <!-- Tabs -->
+      <div class="cp-tabs">
+        <button class="cp-tab active" data-tab="my-rides">
+          <i class="bi bi-car-front me-1"></i> My rides
+        </button>
+        <button class="cp-tab" data-tab="my-bookings">
+          <i class="bi bi-ticket-perforated me-1"></i> My bookings
+        </button>
+      </div>
+
+      <!-- My rides panel -->
+      <div id="panel-my-rides">
+        <div id="my-rides-list" class="ride-list"></div>
+        <div id="my-rides-empty" class="empty-state d-none">
+          <i class="bi bi-car-front"></i>
+          <p>No rides posted yet</p>
+          <button class="btn btn-primary btn-sm px-4 mt-2" id="btn-post-from-dash">Post your first ride</button>
+        </div>
+      </div>
+
+      <!-- My bookings panel -->
+      <div id="panel-my-bookings" class="d-none">
+        <div id="my-bookings-list" class="ride-list"></div>
+        <div id="my-bookings-empty" class="empty-state d-none">
+          <i class="bi bi-ticket-perforated"></i>
+          <p>No bookings yet</p>
+          <button class="btn btn-primary btn-sm px-4 mt-2" id="btn-browse-from-dash">Find a ride</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- ============================================================
+     BOTTOM NAV
+============================================================ -->
+<nav class="bottom-nav hidden" id="bottom-nav">
+  <button class="bottom-nav-btn active" data-view="browse">
+    <i class="bi bi-search"></i>
+    <span>Browse</span>
+  </button>
+  <button class="bottom-nav-btn" data-view="dashboard">
+    <i class="bi bi-person-circle"></i>
+    <span>Account</span>
+  </button>
+</nav>
+
+<!-- ============================================================
+     SCRIPTS
+============================================================ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Firebase 10 compat SDK (no build tools needed) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<!-- App -->
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

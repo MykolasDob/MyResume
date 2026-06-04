@@ -1,17 +1,15 @@
 {
   "hosting": {
-    "public": ".",
+    "public": "app",
     "ignore": [
       "firebase.json",
       "firestore.rules",
-      ".git/**",
-      ".gitignore",
-      "index.html"
+      ".git/**"
     ],
     "rewrites": [
       {
         "source": "**",
-        "destination": "/carpool.html"
+        "destination": "/index.html"
       }
     ]
   },
