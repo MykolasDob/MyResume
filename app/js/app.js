@@ -308,22 +308,26 @@ async function renderDriverBookings(rideId, container) {
     .where('driver_id', '==', currentUser.uid)
     .get();
 
-  if (snap.empty) {
-    container.innerHTML = `
-      <div class="form-card">
-        <div class="text-center text-muted py-4">
-          <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:8px"></i>
-          No booking requests yet
-        </div>
-      </div>`;
-    return;
-  }
-
   const bookings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
   container.innerHTML = `
-    <p style="font-weight:700;font-size:.9rem;margin-bottom:10px">Booking requests (${bookings.length})</p>
-    ${bookings.map(b => bookingCardHTML(b, true)).join('')}
+    ${bookings.length > 0
+      ? `<p style="font-weight:700;font-size:.9rem;margin-bottom:10px">Booking requests (${bookings.length})</p>
+         ${bookings.map(b => bookingCardHTML(b, true)).join('')}`
+      : `<div class="form-card">
+           <div class="text-center text-muted py-4">
+             <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:8px"></i>
+             No booking requests yet
+           </div>
+         </div>`
+    }
+    <button class="btn btn-outline-danger w-100 mt-3" id="btn-delete-ride">
+      <i class="bi bi-trash me-2"></i>Delete this ride
+    </button>
   `;
+
+  bindBookingActions(container, rideId);
+  document.getElementById('btn-delete-ride').addEventListener('click', () => deleteRide(rideId));
 
   bindBookingActions(container, rideId);
 }
@@ -395,6 +399,31 @@ async function updateBooking(bookingId, newStatus, rideId) {
   } catch (err) {
     console.error(err);
     toast('Something went wrong', 'error');
+  }
+}
+
+// ---- DELETE RIDE ----
+async function deleteRide(rideId) {
+  if (!confirm('Delete this ride? This cannot be undone.')) return;
+
+  try {
+    // Delete all associated bookings first
+    const bookings = await db.collection('bookings')
+      .where('ride_id', '==', rideId)
+      .where('driver_id', '==', currentUser.uid)
+      .get();
+
+    const batch = db.batch();
+    bookings.docs.forEach(d => batch.delete(d.ref));
+    batch.delete(db.collection('rides').doc(rideId));
+    await batch.commit();
+
+    toast('Ride deleted', 'success');
+    showView('dashboard');
+    loadDashboard();
+  } catch (err) {
+    console.error(err);
+    toast('Failed to delete ride', 'error');
   }
 }
 
